@@ -2,10 +2,8 @@
 # Copyright (c) 2024 Jianxiong Gu
 # SPDX-License-Identifier: Apache-2.0
 
-config SOC_FAMILY_CH32V
-	bool
+if SOC_FAMILY_CH32V
 
-config SOC_FAMILY
-	default "ch32v" if SOC_FAMILY_CH32V
+rsource "ch32v/*/Kconfig.defconfig"
 
-rsource "*/Kconfig.soc"
+endif # SOC_FAMILY_CH32V

@@ -17,6 +17,6 @@ config VECTOR_TABLE_SIZE
 	  This option defines the total number of interrupt and exception
 	  vectors in the vector table.
 
-rsource "*/Kconfig"
+rsource "ch32v/*/Kconfig"
 
 endif # SOC_FAMILY_CH32V
