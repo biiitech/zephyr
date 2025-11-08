@@ -19,12 +19,12 @@
 
 void arch_irq_enable(unsigned int irq)
 {
-	PFIC->IENR[irq / 32] = BIT(irq % 32);
+	PFIC->IENR[irq >> 5] = BIT(irq & 0x1F);
 }
 
 void arch_irq_disable(unsigned int irq)
 {
-	PFIC->IRER[irq / 32] = BIT(irq % 32);
+	PFIC->IRER[irq >> 5] = BIT(irq & 0x1F);
 }
 
 int arch_irq_is_enabled(unsigned int irq)

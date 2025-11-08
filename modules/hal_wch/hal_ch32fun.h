@@ -11,6 +11,8 @@
 #ifndef _CH32FUN_H
 #define _CH32FUN_H
 
+#include <zephyr/toolchain.h>
+
 #if defined(CONFIG_SOC_CH32V003)
 #define CH32V003 1
 #include <ch32fun.h>
@@ -44,5 +46,16 @@
 #endif
 #include <ch32fun.h>
 #endif /* defined(CONFIG_SOC_SERIES_QINGKE_V4F) */
+
+#if defined(CONFIG_SOC_SERIES_QINGKE_V3C)
+#define CH57x 1
+#if defined(CONFIG_SOC_CH572D)
+#define MCU_PACKAGE 2
+#endif
+#define asm                       __asm__
+#define FUNCONF_SYSTEM_CORE_CLOCK 60000000
+#define CLK_SOURCE_CH5XX          CLK_SOURCE_PLL_60MHz
+#include <ch32fun.h>
+#endif /* defined(CONFIG_SOC_SERIES_QINGKE_V3C) */
 
 #endif

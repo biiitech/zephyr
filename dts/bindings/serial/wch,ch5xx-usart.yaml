@@ -1,0 +1,9 @@
+description: WCH CH5XX UART
+
+compatible: "wch,ch5xx-usart"
+
+include: [uart-controller.yaml, pinctrl-device.yaml]
+
+properties:
+  reg:
+    required: true

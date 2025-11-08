@@ -12,7 +12,9 @@ properties:
     required: true
 
   clocks:
-    required: true
+    description: |
+      select clock to enable, before this peripheral can be used
+      optional on ch5xx, and required by ch32v family
 
   interrupts:
     required: true

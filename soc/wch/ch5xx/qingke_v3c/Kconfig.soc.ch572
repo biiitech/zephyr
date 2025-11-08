@@ -1,0 +1,9 @@
+# Copyright (c) 2025 BIII Tech LLP
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_CH572D
+	bool
+	select SOC_SERIES_QINGKE_V3C
+
+config SOC
+	default "ch572d" if SOC_CH572D

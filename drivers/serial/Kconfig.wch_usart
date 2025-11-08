@@ -10,3 +10,14 @@ config UART_WCH_USART
 	select PINCTRL
 	help
 	  This option enables the USART driver for CH32V00x SoC family.
+
+config UART_WCH_CH5XX_USART
+	bool "CH5XX USART driver"
+	default y
+	depends on DT_HAS_WCH_CH5XX_USART_ENABLED
+	select SERIAL_HAS_DRIVER
+	select SERIAL_SUPPORT_INTERRUPT
+	select SERIAL_SUPPORT_ASYNC
+	select PINCTRL
+	help
+	  This option enables the USART driver for CH5XX SoC family.

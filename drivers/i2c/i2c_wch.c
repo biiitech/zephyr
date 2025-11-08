@@ -26,10 +26,12 @@ typedef void (*irq_config_func_t)(const struct device *port);
 struct i2c_wch_config {
 	const struct pinctrl_dev_config *pcfg;
 	irq_config_func_t irq_config_func;
+#if !defined(CONFIG_SOC_FAMILY_CH5XX)
 	const struct device *clk_dev;
+	uint8_t clk_id;
+#endif
 	I2C_TypeDef *regs;
 	uint32_t bitrate;
-	uint8_t clk_id;
 };
 
 struct i2c_wch_data {
@@ -39,8 +41,8 @@ struct i2c_wch_data {
 		uint32_t idx;
 		union {
 			struct {
-				uint16_t addr : 10;
-				uint16_t err : 6;
+				uint16_t addr: 10;
+				uint16_t err: 6;
 			};
 			uint16_t: 16;
 		};
@@ -178,8 +180,8 @@ static void i2c_wch_error_isr(const struct device *dev)
 	}
 }
 
-static void wch_i2c_msg_init(const struct device *dev, struct i2c_msg *msg,
-			     uint16_t addr, bool first_msg)
+static void wch_i2c_msg_init(const struct device *dev, struct i2c_msg *msg, uint16_t addr,
+			     bool first_msg)
 {
 	const struct i2c_wch_config *config = dev->config;
 	struct i2c_wch_data *data = dev->data;
@@ -237,8 +239,8 @@ static void wch_i2c_config_interrupts(I2C_TypeDef *regs, bool enable)
 	}
 }
 
-static int32_t wch_i2c_begin_transfer(const struct device *dev, struct i2c_msg *msg,
-				      uint16_t addr, bool first_msg)
+static int32_t wch_i2c_begin_transfer(const struct device *dev, struct i2c_msg *msg, uint16_t addr,
+				      bool first_msg)
 {
 	const struct i2c_wch_config *config = dev->config;
 	struct i2c_wch_data *data = dev->data;
@@ -268,8 +270,7 @@ static void wch_i2c_finish_transfer(const struct device *dev)
 	regs->CTLR1 &= ~I2C_CTLR1_PE;
 }
 
-static int wch_i2c_configure_timing(I2C_TypeDef *regs, uint32_t clock_rate,
-				    uint32_t speed)
+static int wch_i2c_configure_timing(I2C_TypeDef *regs, uint32_t clock_rate, uint32_t speed)
 {
 	uint16_t freq_range = (uint16_t)(clock_rate / 1000000);
 	uint16_t clock_config;
@@ -312,7 +313,9 @@ static int i2c_wch_configure(const struct device *dev, uint32_t dev_config)
 {
 	const struct i2c_wch_config *config = dev->config;
 	I2C_TypeDef *regs = config->regs;
+#if !defined(CONFIG_SOC_FAMILY_CH5XX)
 	clock_control_subsys_t clk_sys;
+#endif
 	uint32_t clock_rate;
 	int err;
 
@@ -324,12 +327,16 @@ static int i2c_wch_configure(const struct device *dev, uint32_t dev_config)
 		return -ENOTSUP;
 	}
 
+#if defined(CONFIG_SOC_FAMILY_CH5XX)
+	clock_rate = 8000000ul;
+#else
 	clk_sys = (clock_control_subsys_t)(uintptr_t)config->clk_id;
 
 	err = clock_control_get_rate(config->clk_dev, clk_sys, &clock_rate);
 	if (err != 0) {
 		return err;
 	}
+#endif
 
 	regs->CTLR1 &= ~I2C_CTLR1_PE;
 
@@ -341,8 +348,8 @@ static int i2c_wch_configure(const struct device *dev, uint32_t dev_config)
 	return 0;
 }
 
-static int i2c_wch_transfer(const struct device *dev, struct i2c_msg *msg,
-			    uint8_t num_msgs, uint16_t addr)
+static int i2c_wch_transfer(const struct device *dev, struct i2c_msg *msg, uint8_t num_msgs,
+			    uint16_t addr)
 {
 	int ret = 0;
 
@@ -371,18 +378,21 @@ static int i2c_wch_init(const struct device *dev)
 {
 	const struct i2c_wch_config *config = dev->config;
 	struct i2c_wch_data *data = dev->data;
+#if !defined(CONFIG_SOC_FAMILY_CH5XX)
 	clock_control_subsys_t clk_sys;
+#endif
 	int err;
 
 	k_sem_init(&data->xfer_done, 0, 1);
 
-	clk_sys = (clock_control_subsys_t)(uintptr_t)config->clk_id;
 
+#if !defined(CONFIG_SOC_FAMILY_CH5XX)
+	clk_sys = (clock_control_subsys_t)(uintptr_t)config->clk_id;
 	err = clock_control_on(config->clk_dev, clk_sys);
 	if (err < 0) {
 		return err;
 	}
-
+#endif
 	err = pinctrl_apply_state(config->pcfg, PINCTRL_STATE_DEFAULT);
 	if (err < 0) {
 		return err;
@@ -406,39 +416,78 @@ static DEVICE_API(i2c, i2c_wch_api) = {
 #endif
 };
 
-#define I2C_WCH_INIT(inst)								\
-	PINCTRL_DT_INST_DEFINE(inst);							\
-											\
-	static void i2c_wch_config_func_##inst(const struct device *dev);		\
-											\
-	static struct i2c_wch_config i2c_wch_cfg_##inst = {				\
-		.pcfg = PINCTRL_DT_INST_DEV_CONFIG_GET(inst),				\
-		.irq_config_func = i2c_wch_config_func_##inst,				\
-		.clk_dev = DEVICE_DT_GET(DT_INST_CLOCKS_CTLR(inst)),			\
-		.regs = (I2C_TypeDef *)DT_INST_REG_ADDR(inst),				\
-		.bitrate = DT_INST_PROP(inst, clock_frequency),				\
-		.clk_id = DT_INST_CLOCKS_CELL(inst, id)					\
-	};										\
-											\
-	static struct i2c_wch_data i2c_wch_data_##inst;					\
-											\
-	I2C_DEVICE_DT_INST_DEFINE(inst, i2c_wch_init, NULL, &i2c_wch_data_##inst,	\
-				 &i2c_wch_cfg_##inst, PRE_KERNEL_1,			\
-				 CONFIG_I2C_INIT_PRIORITY, &i2c_wch_api);		\
-											\
-	static void i2c_wch_config_func_##inst(const struct device *dev)		\
-	{										\
-		ARG_UNUSED(dev);							\
-											\
-		IRQ_CONNECT(DT_INST_IRQ_BY_IDX(inst, 0, irq),				\
-			    DT_INST_IRQ_BY_IDX(inst, 0, priority),			\
-			    i2c_wch_event_isr, DEVICE_DT_INST_GET(inst), 0);		\
-		irq_enable(DT_INST_IRQ_BY_IDX(inst, 0, irq));				\
-											\
-		IRQ_CONNECT(DT_INST_IRQ_BY_IDX(inst, 1, irq),				\
-			    DT_INST_IRQ_BY_IDX(inst, 1, priority),			\
-			    i2c_wch_error_isr, DEVICE_DT_INST_GET(inst), 0);		\
-		irq_enable(DT_INST_IRQ_BY_IDX(inst, 1, irq));				\
+#if defined(CONFIG_SOC_FAMILY_CH5XX)
+
+static void i2c_wch_single_isr(const struct device *dev)
+{
+	i2c_wch_error_isr(dev);
+	i2c_wch_event_isr(dev);
+}
+
+#define I2C_WCH_INIT(inst)                                                                         \
+	PINCTRL_DT_INST_DEFINE(inst);                                                              \
+                                                                                                   \
+	static void i2c_wch_config_func_##inst(const struct device *dev);                          \
+                                                                                                   \
+	static struct i2c_wch_config i2c_wch_cfg_##inst = {                                        \
+		.pcfg = PINCTRL_DT_INST_DEV_CONFIG_GET(inst),                                      \
+		.irq_config_func = i2c_wch_config_func_##inst,                                     \
+		.regs = (I2C_TypeDef *)DT_INST_REG_ADDR(inst),                                     \
+		.bitrate = DT_INST_PROP(inst, clock_frequency),                                    \
+	};                                                                                         \
+                                                                                                   \
+	static struct i2c_wch_data i2c_wch_data_##inst;                                            \
+                                                                                                   \
+	I2C_DEVICE_DT_INST_DEFINE(inst, i2c_wch_init, NULL, &i2c_wch_data_##inst,                  \
+				  &i2c_wch_cfg_##inst, PRE_KERNEL_1, CONFIG_I2C_INIT_PRIORITY,     \
+				  &i2c_wch_api);                                                   \
+                                                                                                   \
+	static void i2c_wch_config_func_##inst(const struct device *dev)                           \
+	{                                                                                          \
+		ARG_UNUSED(dev);                                                                   \
+                                                                                                   \
+		IRQ_CONNECT(DT_INST_IRQ_BY_IDX(inst, 0, irq),                                      \
+			    DT_INST_IRQ_BY_IDX(inst, 0, priority), i2c_wch_single_isr,             \
+			    DEVICE_DT_INST_GET(inst), 0);                                          \
+		irq_enable(DT_INST_IRQ_BY_IDX(inst, 0, irq));                                      \
 	}
+
+#else
+
+#define I2C_WCH_INIT(inst)                                                                         \
+	PINCTRL_DT_INST_DEFINE(inst);                                                              \
+                                                                                                   \
+	static void i2c_wch_config_func_##inst(const struct device *dev);                          \
+                                                                                                   \
+	static struct i2c_wch_config i2c_wch_cfg_##inst = {                                        \
+		.pcfg = PINCTRL_DT_INST_DEV_CONFIG_GET(inst),                                      \
+		.irq_config_func = i2c_wch_config_func_##inst,                                     \
+		.clk_dev = DEVICE_DT_GET(DT_INST_CLOCKS_CTLR(inst)),                               \
+		.regs = (I2C_TypeDef *)DT_INST_REG_ADDR(inst),                                     \
+		.bitrate = DT_INST_PROP(inst, clock_frequency),                                    \
+		.clk_id = DT_INST_CLOCKS_CELL(inst, id)};                                          \
+                                                                                                   \
+	static struct i2c_wch_data i2c_wch_data_##inst;                                            \
+                                                                                                   \
+	I2C_DEVICE_DT_INST_DEFINE(inst, i2c_wch_init, NULL, &i2c_wch_data_##inst,                  \
+				  &i2c_wch_cfg_##inst, PRE_KERNEL_1, CONFIG_I2C_INIT_PRIORITY,     \
+				  &i2c_wch_api);                                                   \
+                                                                                                   \
+	static void i2c_wch_config_func_##inst(const struct device *dev)                           \
+	{                                                                                          \
+		ARG_UNUSED(dev);                                                                   \
+                                                                                                   \
+		IRQ_CONNECT(DT_INST_IRQ_BY_IDX(inst, 0, irq),                                      \
+			    DT_INST_IRQ_BY_IDX(inst, 0, priority), i2c_wch_event_isr,              \
+			    DEVICE_DT_INST_GET(inst), 0);                                          \
+		irq_enable(DT_INST_IRQ_BY_IDX(inst, 0, irq));                                      \
+                                                                                                   \
+		IRQ_CONNECT(DT_INST_IRQ_BY_IDX(inst, 1, irq),                                      \
+			    DT_INST_IRQ_BY_IDX(inst, 1, priority), i2c_wch_error_isr,              \
+			    DEVICE_DT_INST_GET(inst), 0);                                          \
+		irq_enable(DT_INST_IRQ_BY_IDX(inst, 1, irq));                                      \
+	}
+
+#endif
 
 DT_INST_FOREACH_STATUS_OKAY(I2C_WCH_INIT)

@@ -1,0 +1,8 @@
+# Copyright (c) 2025 BIII Tech LLP.
+# SPDX-License-Identifier: Apache-2.0
+
+description: WCH CH5xx LSI Clock
+
+compatible: "wch,ch5xx-lsi-clock"
+
+include: [fixed-clock.yaml]

@@ -1,0 +1,48 @@
+# Copyright (c) 2024 Michael Hope
+# SPDX-License-Identifier: Apache-2.0
+
+
+description: WCH CH5xx (CH570/CH572) AFIO pin controller
+
+compatible: "wch,ch5xx-afio"
+
+include: base.yaml
+
+properties:
+  reg:
+    required: true
+  "#address-cells":
+    required: true
+    const: 1
+  "#size-cells":
+    required: true
+    const: 1
+
+child-binding:
+  description: |
+    Each child node defines the configuration for a particular pinctrl state.
+  child-binding:
+    description: |
+      The grandchild nodes group pins that share the same pin configuration.
+
+    include:
+      - name: pincfg-node.yaml
+        property-allowlist:
+          - bias-pull-up
+          - bias-pull-down
+          - output-enable
+
+    properties:
+      high-drive:
+        type: boolean
+        description: |
+          Enable high drive strength (20mA) for the pins in this group. 
+          Standard drive strength is 5mA.
+          This setting applies only to output pins.
+
+      pinmux:
+        required: true
+        type: array
+        description: |
+          An array of pins sharing the same group properties. The pins should
+          be defined using macros from ch5xx-pinctrl.h.

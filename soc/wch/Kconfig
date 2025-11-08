@@ -1,5 +1,6 @@
 # Copyright (c) 2024 Michael Hope
 # Copyright (c) 2024 Jianxiong Gu
+# Copyright (c) 2025 BIII Tech LLP.
 # SPDX-License-Identifier: Apache-2.0
 
 config SOC_FAMILY_CH32V
@@ -8,7 +9,13 @@ config SOC_FAMILY_CH32V
 	select CH32V00X_SYSTICK
 	imply XIP
 
-if SOC_FAMILY_CH32V
+config SOC_FAMILY_CH5XX
+	select RISCV
+	select BUILD_OUTPUT_HEX
+	select CH5XX_SYSTICK
+	imply XIP
+
+if SOC_FAMILY_CH32V || SOC_FAMILY_CH5XX
 
 config VECTOR_TABLE_SIZE
 	int "Number of Interrupt and Exception Vectors"
@@ -18,5 +25,6 @@ config VECTOR_TABLE_SIZE
 	  vectors in the vector table.
 
 rsource "ch32v/*/Kconfig"
+rsource "ch5xx/*/Kconfig"
 
 endif # SOC_FAMILY_CH32V

@@ -1,0 +1,12 @@
+# Copyright (c) 2025 BIII Tech LLP.
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_CH572D
+
+config VECTOR_TABLE_SIZE
+	default 35
+
+config NUM_IRQS
+	default 35
+
+endif # SOC_CH572D

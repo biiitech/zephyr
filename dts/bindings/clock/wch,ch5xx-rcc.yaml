@@ -1,0 +1,25 @@
+# Copyright (c) 2024 Michael Hope
+# SPDX-License-Identifier: Apache-2.0
+
+description: WCH CH32V00x Reset and Clock Control (RCC)
+
+compatible: "wch,ch5xx-rcc"
+
+include: [clock-controller.yaml, base.yaml]
+
+properties:
+  "#clock-cells":
+    const: 1
+
+  divider:
+    description: Clock divider
+    type: int
+    default: 5
+    enum: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+
+  stop-on-halt:
+    description: Stop the clock when the CPU is halted for debugging
+    type: boolean
+
+clock-cells:
+  - id
