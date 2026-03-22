@@ -1,0 +1,23 @@
+# Copyright (c) 2025 BIII Tech LLP.
+# SPDX-License-Identifier: Apache-2.0
+
+description: WCH CH5xx HSE Clock
+
+compatible: "wch,ch5xx-hse-clock"
+
+include: [fixed-clock.yaml]
+
+properties:
+  hse-load-capacitance:
+    type: int
+    default: 16
+    description: |
+      Load capacitance for the HSE crystal in picofarads. Valid values: 6, 8, 10, 12, 14, 16, 18, 20.
+    enum: [6, 8, 10, 12, 14, 16, 18, 20]
+
+  hse-rated-current:
+    type: int
+    default: 150
+    description: |
+      Current in percentage of the rated current for the crystal. Valid values: 75, 100, 125, 150.
+    enum: [75, 100, 125, 150]

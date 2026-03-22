@@ -1,0 +1,20 @@
+# Copyright (c) 2025 BIII Tech LLP.
+# SPDX-License-Identifier: Apache-2.0
+
+description: WCH CH5xx Programmable Fast Interrupt Controller (PFIC)
+
+compatible: "wch,ch5xx-pfic"
+
+include: [interrupt-controller.yaml, base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  "#interrupt-cells":
+    const: 3
+
+interrupt-cells:
+  - irq
+  - priority
+  - flags
