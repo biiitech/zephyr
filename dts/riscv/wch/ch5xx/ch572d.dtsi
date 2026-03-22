@@ -105,5 +105,14 @@
 			interrupt-parent = <&pfic>;
 			interrupts = <30 11 0>;
 		};
+
+		usb: usb@40008000 {
+			compatible = "wch,ch5xx-usb";
+			reg = <0x40008000 0x70>;
+			interrupt-parent = <&pfic>;
+			interrupts = <22 6 0>;
+			num-bidir-endpoints = <8>;
+			status = "disabled";
+		};
 	};
 };
