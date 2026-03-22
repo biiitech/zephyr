@@ -1,0 +1,6 @@
+board:
+  name: ch572dk
+  full_name: BIII CH572DK
+  vendor: biii
+  socs:
+    - name: ch572

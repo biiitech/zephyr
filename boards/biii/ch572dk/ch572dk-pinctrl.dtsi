@@ -1,0 +1,50 @@
+/*
+ * Copyright (c) 2024 Michael Hope <michaelh@juju.nz>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <zephyr/dt-bindings/pinctrl/ch5xx-pinctrl.h>
+
+&pinctrl {
+
+	uart0_default: uart0_default {
+		group1 {
+			pinmux = <CH572_UART0_TX_PA3>;
+			output-enable;
+		};
+
+		group2 {
+			pinmux = <CH572_UART0_RX_PA2>;
+			bias-pull-up;
+		};
+	};
+
+	i2c1_default: i2c1_default {
+		group1 {
+			pinmux = <CH572_I2C0_SCL_PA8>;
+			bias-pull-up;
+		};
+		group2 {
+			pinmux = <CH572_I2C0_SDA_PA9>;
+			bias-pull-up;
+		};
+	};
+
+	spi0_default: spi0_default {
+		group1 {
+			pinmux = <CH572_SPI0_CS_PA4>;
+			output-enable;
+		};
+		group2 {
+			pinmux = <CH572_SPI0_CLK_PA5>;
+			output-enable;
+		};
+		group3 {
+			pinmux = <CH572_SPI0_MOSI_PA7>;
+			output-enable;
+		};
+		group4 {
+			pinmux = <CH572_SPI0_MISO_PA6>;
+		};
+	};
+};
