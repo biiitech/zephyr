@@ -19,17 +19,22 @@
 
 void arch_irq_enable(unsigned int irq)
 {
-	PFIC->IENR[irq / 32] = BIT(irq % 32);
+	PFIC->IENR[irq >> 5] = BIT(irq & 0x1F);
 }
 
 void arch_irq_disable(unsigned int irq)
 {
-	PFIC->IRER[irq / 32] = BIT(irq % 32);
+	PFIC->IRER[irq >> 5] = BIT(irq & 0x1F);
 }
 
 int arch_irq_is_enabled(unsigned int irq)
 {
 	return ((PFIC->ISR[irq >> 5] & BIT(irq & 0x1F)) != 0);
+}
+
+void arch_irq_priority_set(unsigned int irq, unsigned int prio)
+{
+	PFIC->IPRIOR[irq] = (uint8_t)prio;
 }
 
 static int pfic_init(void)
